@@ -10,9 +10,8 @@ export default function EmployerNav() {
 
   const links = [
     { name: 'Dashboard', href: '/portal/employer', icon: LayoutDashboard },
-    { name: 'Job Postings', href: '/portal/employer/jobs', icon: Briefcase },
-    { name: 'Applicant Review Pipeline', href: '/portal/employer/applicants', icon: Users },
-    { name: 'HR Consulting Requests', href: '/portal/employer/consulting', icon: MessageSquare },
+    { name: 'Post & Manage Jobs', href: '/portal/employer/jobs', icon: Briefcase },
+    { name: 'Applicants List', href: '/portal/employer/applicants', icon: Users },
     { name: 'Company Profile', href: '/portal/employer/profile', icon: Building2 },
   ];
 

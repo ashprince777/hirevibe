@@ -5,34 +5,24 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import {
-  Briefcase,
-  Users,
   ChevronDown,
   Menu,
   X,
   LogOut,
   LayoutDashboard,
-  Sparkles,
-  Shield,
-  Building2,
-  UserCheck,
 } from 'lucide-react';
 
 export default function Navbar() {
   const pathname = usePathname();
-  const { user, logout, switchDemoUser } = useAuth();
+  const { user, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [demoMenuOpen, setDemoMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
 
   const navLinks = [
     { name: 'Services', href: '/services' },
     { name: 'Search Jobs', href: '/jobs' },
-    { name: 'Case Studies', href: '/case-studies' },
-    { name: 'HR Insights', href: '/blog' },
-    { name: 'Pricing & Retainers', href: '/pricing' },
     { name: 'About Us', href: '/about' },
-    { name: 'Contact Us', href: '/contact' },
+    { name: 'Contact', href: '/contact' },
   ];
 
   const getPortalLink = () => {
@@ -50,74 +40,23 @@ export default function Navbar() {
   };
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-slate-200/80 bg-white/90 backdrop-blur-md transition-all">
-      {/* Top Banner for Demo Switcher */}
-      <div className="bg-navy-950 text-slate-300 text-xs py-1.5 px-4">
+    <header className="sticky top-0 z-40 w-full border-b border-slate-200/80 bg-white/95 backdrop-blur-md transition-all">
+      {/* Lean Utility Bar */}
+      <div className="bg-navy-950 text-slate-300 text-xs py-1.5 px-4 hidden sm:block">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="inline-block w-2 h-2 rounded-full bg-emerald-400" />
             <span className="font-semibold text-slate-200">HireVibe Advisory</span>
-            <span className="hidden md:inline text-slate-400">
-              | Executive Search, Labour Law Compliance & Strategic HR Consulting
+            <span className="text-slate-400">
+              | Tech Staffing, Executive Search & HR Compliance Advisory
             </span>
           </div>
 
-          <div className="flex items-center gap-3">
-            <div className="relative">
-              <button
-                onClick={() => setDemoMenuOpen(!demoMenuOpen)}
-                className="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-amber-300 font-semibold px-2.5 py-0.5 rounded-full text-xs transition"
-              >
-                <Sparkles className="w-3 h-3 text-amber-400" />
-                <span>⚡ Demo Switcher</span>
-                <ChevronDown className="w-3 h-3" />
-              </button>
-
-              {demoMenuOpen && (
-                <div
-                  className="absolute right-0 mt-2 w-68 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl py-2 z-50 text-slate-200"
-                  onClick={() => setDemoMenuOpen(false)}
-                >
-                  <div className="px-3 py-1.5 text-[11px] font-semibold uppercase text-slate-400 border-b border-slate-800">
-                    Switch Indian Demo Persona
-                  </div>
-                  <button
-                    onClick={() => switchDemoUser('ADMIN')}
-                    className="w-full text-left px-3 py-2 text-xs hover:bg-slate-800 flex items-center gap-2.5 transition"
-                  >
-                    <Shield className="w-4 h-4 text-rose-400" />
-                    <div>
-                      <div className="font-semibold text-white">Pooja Sharma (Admin)</div>
-                      <div className="text-[11px] text-slate-400">Managing Partner | Full Governance</div>
-                    </div>
-                  </button>
-                  <button
-                    onClick={() => switchDemoUser('EMPLOYER')}
-                    className="w-full text-left px-3 py-2 text-xs hover:bg-slate-800 flex items-center gap-2.5 transition"
-                  >
-                    <Building2 className="w-4 h-4 text-brand-400" />
-                    <div>
-                      <div className="font-semibold text-white">RazorScale Technologies (Employer)</div>
-                      <div className="text-[11px] text-slate-400">FinTech Unicorn | Bengaluru Hub</div>
-                    </div>
-                  </button>
-                  <button
-                    onClick={() => switchDemoUser('CANDIDATE')}
-                    className="w-full text-left px-3 py-2 text-xs hover:bg-slate-800 flex items-center gap-2.5 transition"
-                  >
-                    <UserCheck className="w-4 h-4 text-emerald-400" />
-                    <div>
-                      <div className="font-semibold text-white">Rohan Verma (Candidate)</div>
-                      <div className="text-[11px] text-slate-400">Staff Full-Stack Architect | Bengaluru</div>
-                    </div>
-                  </button>
-                </div>
-              )}
-            </div>
-
-            <span className="text-slate-500">|</span>
-            <Link href="/contact" className="hover:text-white transition">
-              Call: +91 (080) 4200-VIBE
+          <div className="flex items-center gap-4 text-slate-300 text-xs">
+            <span>Bengaluru, Karnataka</span>
+            <span className="text-slate-600">•</span>
+            <Link href="/contact" className="hover:text-emerald-400 transition">
+              advisory@hirevibe.in
             </Link>
           </div>
         </div>

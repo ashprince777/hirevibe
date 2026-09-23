@@ -9,11 +9,9 @@ export default function AdminNav() {
   const pathname = usePathname();
 
   const links = [
-    { name: 'Analytics & Overview', href: '/admin', icon: LayoutDashboard },
-    { name: 'User Directory', href: '/admin/users', icon: Users },
     { name: 'Job Moderation', href: '/admin/jobs', icon: Briefcase },
-    { name: 'HR Consulting Desk', href: '/admin/services', icon: MessageSquare },
-    { name: 'Insights & CMS', href: '/admin/blog', icon: BookOpen },
+    { name: 'Consultation & Quote Inquiries', href: '/admin/services', icon: MessageSquare },
+    { name: 'User Directory', href: '/admin/users', icon: Users },
   ];
 
   return (

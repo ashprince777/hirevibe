@@ -8,13 +8,10 @@ import {
   FileText,
   Clock,
   CheckCircle2,
-  Calendar,
-  Sparkles,
   ArrowRight,
-  Bookmark,
-  Bell,
   Building,
   MapPin,
+  Briefcase,
 } from 'lucide-react';
 import { formatCurrency, timeAgo } from '@/lib/utils';
 
@@ -39,18 +36,8 @@ export default async function CandidatePortalPage() {
     orderBy: { appliedAt: 'desc' },
   });
 
-  const savedJobsCount = await prisma.savedJob.count({
-    where: { candidateId: user.id },
-  });
-
-  const notifications = await prisma.notification.findMany({
-    where: { userId: user.id },
-    orderBy: { createdAt: 'desc' },
-    take: 5,
-  });
-
   // Recommended active jobs
-  const recommendedJobs = await prisma.job.findMany({
+  const openJobs = await prisma.job.findMany({
     where: {
       status: 'ACTIVE',
       applications: {
@@ -62,137 +49,132 @@ export default async function CandidatePortalPage() {
     orderBy: { createdAt: 'desc' },
   });
 
-  const statusCounts = {
-    total: applications.length,
-    reviewing: applications.filter((a) => a.status === 'REVIEWING').length,
-    shortlisted: applications.filter((a) => a.status === 'SHORTLISTED' || a.status === 'INTERVIEW').length,
-    offered: applications.filter((a) => a.status === 'OFFERED').length,
-  };
+  const shortlistedCount = applications.filter((a) =>
+    ['SHORTLISTED', 'INTERVIEW', 'OFFERED'].includes(a.status.toUpperCase())
+  ).length;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-      {/* Welcome Banner */}
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
           <span className="text-xs font-bold uppercase tracking-wider text-brand-600 bg-brand-50 px-3 py-1 rounded-full">
-            Candidate Career Portal
+            Candidate Portal
           </span>
           <h1 className="text-2xl sm:text-3xl font-bold text-navy-950 mt-2">
             Welcome back, {user.name}
           </h1>
           <p className="text-xs text-slate-500 mt-1">
-            Track your active candidacies, interview feedback, and bookmarked positions.
+            {user.candidateProfile?.headline || 'Review your applications and explore opportunities'}
           </p>
         </div>
 
         <Link
           href="/jobs"
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold shadow-sm transition"
+          className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold shadow-sm transition self-start sm:self-auto"
         >
-          <span>Browse New Mandates</span>
-          <ArrowRight className="w-3.5 h-3.5" />
+          <Briefcase className="w-4 h-4" />
+          <span>Browse All Jobs</span>
         </Link>
       </div>
 
       <CandidateNav />
 
-      {/* Metrics Row */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      {/* KPI Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-          <span className="text-slate-400 text-xs font-semibold">Total Applications</span>
-          <div className="text-3xl font-black text-navy-950 mt-1">{statusCounts.total}</div>
-          <span className="text-[11px] text-slate-400 mt-1 block">Submitted through HireVibe</span>
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-slate-500">Submitted Applications</span>
+            <FileText className="w-4 h-4 text-brand-500" />
+          </div>
+          <div className="text-2xl font-bold text-navy-950 mt-2">{applications.length}</div>
+          <p className="text-[11px] text-slate-400 mt-0.5">Tracked candidacies</p>
         </div>
 
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-          <span className="text-slate-400 text-xs font-semibold">Under Review</span>
-          <div className="text-3xl font-black text-brand-600 mt-1">{statusCounts.reviewing}</div>
-          <span className="text-[11px] text-slate-400 mt-1 block">Screened by Senior Recruiters</span>
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-slate-500">Shortlisted</span>
+            <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+          </div>
+          <div className="text-2xl font-bold text-emerald-600 mt-2">{shortlistedCount}</div>
+          <p className="text-[11px] text-slate-400 mt-0.5">Shortlisted by hiring team</p>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-          <span className="text-slate-400 text-xs font-semibold">Shortlist / Interview</span>
-          <div className="text-3xl font-black text-amber-600 mt-1">{statusCounts.shortlisted}</div>
-          <span className="text-[11px] text-slate-400 mt-1 block">Advanced to hiring round</span>
-        </div>
-
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-          <span className="text-slate-400 text-xs font-semibold">Saved Opportunities</span>
-          <div className="text-3xl font-black text-purple-600 mt-1">{savedJobsCount}</div>
-          <span className="text-[11px] text-slate-400 mt-1 block">Bookmarked for later</span>
+        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm col-span-2 lg:col-span-1">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-slate-500">Uploaded Resume</span>
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">
+              {user.candidateProfile?.resumeUrl ? 'Attached' : 'Pending'}
+            </span>
+          </div>
+          <div className="text-sm font-semibold text-navy-950 mt-2 truncate">
+            {user.candidateProfile?.resumeUrl ? 'Active CV on file' : 'No CV uploaded'}
+          </div>
+          <Link
+            href="/portal/candidate/profile"
+            className="text-[11px] text-brand-600 hover:underline mt-0.5 block"
+          >
+            Update in Profile ➔
+          </Link>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Recent Applications Pipeline */}
+        {/* Left 2 Cols: Recent Applications */}
         <div className="lg:col-span-2 space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-base font-bold text-navy-950">Active Applications Pipeline</h2>
+            <h3 className="text-base font-bold text-navy-950">Recent Applications</h3>
             <Link
               href="/portal/candidate/applications"
-              className="text-xs font-semibold text-brand-600 hover:underline"
+              className="text-xs font-semibold text-brand-600 hover:underline flex items-center gap-1"
             >
-              View All ({applications.length})
+              <span>View all</span>
+              <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
 
           {applications.length === 0 ? (
-            <div className="bg-white p-8 rounded-2xl border border-slate-200 text-center space-y-3">
-              <FileText className="w-8 h-8 text-slate-300 mx-auto" />
+            <div className="bg-white rounded-2xl p-8 text-center border border-slate-200 space-y-3">
               <p className="text-xs text-slate-500">You haven't submitted any job applications yet.</p>
               <Link
                 href="/jobs"
-                className="inline-block px-4 py-2 bg-navy-950 text-white rounded-xl text-xs font-semibold"
+                className="inline-block px-4 py-2 bg-navy-950 text-white rounded-xl text-xs font-semibold hover:bg-brand-600 transition"
               >
-                Browse Open Roles
+                Find Jobs
               </Link>
             </div>
           ) : (
             <div className="space-y-3">
               {applications.slice(0, 4).map((app) => {
-                const statusStyles: Record<string, string> = {
-                  SUBMITTED: 'bg-slate-100 text-slate-700 border-slate-200',
-                  REVIEWING: 'bg-brand-50 text-brand-700 border-brand-200',
-                  SHORTLISTED: 'bg-amber-50 text-amber-700 border-amber-200',
-                  INTERVIEW: 'bg-purple-50 text-purple-700 border-purple-200',
-                  OFFERED: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-                  REJECTED: 'bg-rose-50 text-rose-700 border-rose-200',
-                };
+                const s = app.status.toUpperCase();
+                const isShortlisted = ['SHORTLISTED', 'INTERVIEW', 'OFFERED'].includes(s);
+                const isRejected = s === 'REJECTED';
 
                 return (
                   <div
                     key={app.id}
-                    className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                    className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between gap-4"
                   >
                     <div>
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-bold text-sm text-navy-950 hover:text-brand-600 transition">
-                          <Link href={`/jobs/${app.job.id}`}>{app.job.title}</Link>
-                        </h3>
-                        <span
-                          className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
-                            statusStyles[app.status] || 'bg-slate-100 text-slate-700'
-                          }`}
-                        >
-                          {app.status}
-                        </span>
-                      </div>
+                      <h4 className="font-bold text-sm text-navy-950 hover:text-brand-600 transition">
+                        <Link href={`/jobs/${app.job.id}`}>{app.job.title}</Link>
+                      </h4>
                       <p className="text-xs text-slate-500 mt-0.5">
                         {app.job.employer.companyName} • Applied {timeAgo(app.appliedAt)}
                       </p>
-                      {app.employerNotes && (
-                        <p className="text-[11px] text-slate-600 mt-2 bg-slate-50 p-2 rounded-lg border border-slate-100">
-                          <strong>Recruiter Note:</strong> {app.employerNotes}
-                        </p>
-                      )}
                     </div>
 
-                    <Link
-                      href={`/jobs/${app.job.id}`}
-                      className="px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-xs font-semibold text-slate-700 shrink-0 text-center"
+                    <span
+                      className={`px-3 py-1 rounded-full text-xs font-bold border shrink-0 ${
+                        isShortlisted
+                          ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
+                          : isRejected
+                          ? 'bg-rose-50 text-rose-700 border-rose-300'
+                          : 'bg-slate-100 text-slate-700 border-slate-300'
+                      }`}
                     >
-                      View Role
-                    </Link>
+                      {isShortlisted ? 'Shortlisted' : isRejected ? 'Not Selected' : 'Applied'}
+                    </span>
                   </div>
                 );
               })}
@@ -200,56 +182,35 @@ export default async function CandidatePortalPage() {
           )}
         </div>
 
-        {/* Right Sidebar: Notifications & Recommended Roles */}
-        <div className="space-y-6">
-          {/* Notifications Card */}
+        {/* Right Col: Open Roles */}
+        <div className="space-y-4">
+          <h3 className="text-base font-bold text-navy-950">Open Roles</h3>
           <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Bell className="w-4 h-4 text-brand-500" />
-                <h3 className="text-sm font-bold text-navy-950">Candidate Alerts</h3>
-              </div>
-            </div>
-
-            {notifications.length === 0 ? (
-              <p className="text-xs text-slate-400">No new alerts.</p>
+            {openJobs.length === 0 ? (
+              <p className="text-xs text-slate-500">No new positions at this moment.</p>
             ) : (
-              <div className="space-y-3">
-                {notifications.map((notif) => (
-                  <div key={notif.id} className="pb-3 border-b border-slate-100 last:border-0 last:pb-0 text-xs">
-                    <h4 className="font-semibold text-slate-800">{notif.title}</h4>
-                    <p className="text-[11px] text-slate-500 mt-0.5">{notif.message}</p>
-                    <span className="text-[10px] text-slate-400 mt-1 block">{timeAgo(notif.createdAt)}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Recommended Jobs */}
-          <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-4">
-            <div className="flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-amber-500" />
-              <h3 className="text-sm font-bold text-navy-950">Matching Positions</h3>
-            </div>
-
-            <div className="space-y-3">
-              {recommendedJobs.map((rj) => (
-                <div key={rj.id} className="pb-3 border-b border-slate-100 last:border-0 last:pb-0 text-xs">
-                  <h4 className="font-bold text-navy-950 hover:text-brand-600 transition">
-                    <Link href={`/jobs/${rj.id}`}>{rj.title}</Link>
+              openJobs.map((j) => (
+                <div key={j.id} className="pb-4 border-b border-slate-100 last:border-0 last:pb-0 space-y-1">
+                  <h4 className="font-bold text-xs text-navy-950 hover:text-brand-600">
+                    <Link href={`/jobs/${j.id}`}>{j.title}</Link>
                   </h4>
-                  <p className="text-[11px] text-slate-500">{rj.employer.companyName}</p>
-                  <div className="flex items-center gap-2 mt-1 text-[11px] font-semibold text-slate-700">
-                    <span>
-                      {formatCurrency(rj.salaryMin)} - {formatCurrency(rj.salaryMax)}
+                  <p className="text-[11px] text-slate-500">
+                    {j.employer.companyName} • {j.location}
+                  </p>
+                  <div className="pt-1 flex items-center justify-between">
+                    <span className="text-[11px] font-semibold text-emerald-700">
+                      ₹{formatCurrency(j.salaryMin)} – ₹{formatCurrency(j.salaryMax)}
                     </span>
-                    <span>•</span>
-                    <span>{rj.location}</span>
+                    <Link
+                      href={`/jobs/${j.id}`}
+                      className="text-[11px] font-semibold text-brand-600 hover:underline"
+                    >
+                      View Role ➔
+                    </Link>
                   </div>
                 </div>
-              ))}
-            </div>
+              ))
+            )}
           </div>
         </div>
       </div>

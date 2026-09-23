@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import Link from 'next/link';
 import {
   Users,
   FileText,
@@ -10,11 +9,8 @@ import {
   MapPin,
   ExternalLink,
   CheckCircle2,
-  XCircle,
   Clock,
-  Sparkles,
   Download,
-  Save,
 } from 'lucide-react';
 import { formatDate, timeAgo } from '@/lib/utils';
 import { useToast } from '@/context/ToastContext';
@@ -25,7 +21,6 @@ interface Application {
   appliedAt: string;
   resumeUrl: string;
   coverLetter?: string | null;
-  employerNotes?: string | null;
   job: {
     id: string;
     title: string;
@@ -40,9 +35,6 @@ interface Application {
       headline?: string | null;
       phone?: string | null;
       location?: string | null;
-      skills?: string | null;
-      yearsOfExperience?: number | null;
-      portfolioUrl?: string | null;
     } | null;
   };
 }
@@ -62,34 +54,40 @@ export default function EmployerApplicantsClient({
   const [filterStatus, setFilterStatus] = useState('ALL');
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
-  // Note edits
-  const [notesState, setNotesState] = useState<Record<string, string>>({});
+  const statusOptions = [
+    { value: 'APPLIED', label: 'Applied' },
+    { value: 'SHORTLISTED', label: 'Shortlisted' },
+    { value: 'REJECTED', label: 'Rejected' },
+  ];
+
+  const getCleanStatus = (status: string) => {
+    const s = status.toUpperCase();
+    if (s === 'SHORTLISTED' || s === 'INTERVIEW' || s === 'OFFERED') return 'SHORTLISTED';
+    if (s === 'REJECTED') return 'REJECTED';
+    return 'APPLIED';
+  };
 
   const filtered = applications.filter((app) => {
+    const cleanAppStatus = getCleanStatus(app.status);
     const matchesJob = !filterJob || app.job.id === filterJob;
-    const matchesStatus = filterStatus === 'ALL' || app.status === filterStatus;
+    const matchesStatus = filterStatus === 'ALL' || cleanAppStatus === filterStatus;
     return matchesJob && matchesStatus;
   });
 
   const handleStatusChange = async (appId: string, newStatus: string) => {
     setUpdatingId(appId);
     try {
-      const currentNotes = notesState[appId] !== undefined ? notesState[appId] : applications.find((a) => a.id === appId)?.employerNotes;
-
       const res = await fetch(`/api/applications/${appId}/status`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          status: newStatus,
-          employerNotes: currentNotes,
-        }),
+        body: JSON.stringify({ status: newStatus }),
       });
 
       if (res.ok) {
         setApplications(
-          applications.map((a) => (a.id === appId ? { ...a, status: newStatus, employerNotes: currentNotes } : a))
+          applications.map((a) => (a.id === appId ? { ...a, status: newStatus } : a))
         );
-        toast(`Candidate status progressed to: ${newStatus}`, 'success');
+        toast(`Candidate status updated to: ${newStatus}`, 'success');
       } else {
         toast('Failed to update applicant status', 'error');
       }
@@ -99,30 +97,6 @@ export default function EmployerApplicantsClient({
       setUpdatingId(null);
     }
   };
-
-  const handleSaveNotes = async (appId: string) => {
-    const notes = notesState[appId];
-    if (notes === undefined) return;
-
-    try {
-      const res = await fetch(`/api/applications/${appId}/status`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ employerNotes: notes }),
-      });
-
-      if (res.ok) {
-        setApplications(
-          applications.map((a) => (a.id === appId ? { ...a, employerNotes: notes } : a))
-        );
-        toast('Recruiter notes saved', 'success');
-      }
-    } catch (err) {
-      toast('Error saving notes', 'error');
-    }
-  };
-
-  const statusOptions = ['SUBMITTED', 'REVIEWING', 'SHORTLISTED', 'INTERVIEW', 'OFFERED', 'REJECTED'];
 
   return (
     <div className="space-y-6">
@@ -134,7 +108,7 @@ export default function EmployerApplicantsClient({
             <select
               value={filterJob}
               onChange={(e) => setFilterJob(e.target.value)}
-              className="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-brand-500"
+              className="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-brand-500 bg-white"
             >
               <option value="">All Job Openings ({applications.length})</option>
               {jobsList.map((j) => (
@@ -146,46 +120,45 @@ export default function EmployerApplicantsClient({
           </div>
 
           <div>
-            <label className="block text-[10px] font-bold uppercase text-slate-400 mb-0.5">Pipeline Stage</label>
+            <label className="block text-[10px] font-bold uppercase text-slate-400 mb-0.5">Application Status</label>
             <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
-              className="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-brand-500"
+              className="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-brand-500 bg-white"
             >
-              <option value="ALL">All Stages</option>
-              {statusOptions.map((st) => (
-                <option key={st} value={st}>
-                  {st}
-                </option>
-              ))}
+              <option value="ALL">All Statuses</option>
+              <option value="APPLIED">Applied</option>
+              <option value="SHORTLISTED">Shortlisted</option>
+              <option value="REJECTED">Rejected</option>
             </select>
           </div>
         </div>
 
         <div className="text-xs text-slate-500">
-          Showing <strong className="text-slate-900">{filtered.length}</strong> candidate dossiers
+          Showing <strong className="text-slate-900">{filtered.length}</strong> applicant{filtered.length === 1 ? '' : 's'}
         </div>
       </div>
 
       {filtered.length === 0 ? (
         <div className="bg-white p-12 rounded-3xl border border-slate-200 text-center space-y-3">
           <Users className="w-10 h-10 text-slate-300 mx-auto" />
-          <h3 className="font-bold text-base text-navy-950">No applicants match this criteria</h3>
+          <h3 className="font-bold text-base text-navy-950">No applicants found</h3>
           <p className="text-xs text-slate-500">
-            Adjust the job mandate or pipeline stage filters above.
+            {filterJob || filterStatus !== 'ALL'
+              ? 'Try changing or clearing your filters above.'
+              : 'As candidates apply to your posted jobs, they will appear here.'}
           </p>
         </div>
       ) : (
         <div className="space-y-4">
           {filtered.map((app) => {
-            const currentNote = notesState[app.id] !== undefined ? notesState[app.id] : (app.employerNotes || '');
+            const currentStatus = getCleanStatus(app.status);
 
             return (
               <div
                 key={app.id}
-                className="bg-white rounded-2xl p-6 sm:p-7 border border-slate-200 shadow-sm space-y-5"
+                className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-4"
               >
-                {/* Candidate Dossier Header */}
                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                   <div className="flex items-start gap-4">
                     <img
@@ -194,13 +167,13 @@ export default function EmployerApplicantsClient({
                         `https://ui-avatars.com/api/?name=${encodeURIComponent(app.candidate.name)}`
                       }
                       alt={app.candidate.name}
-                      className="w-14 h-14 rounded-2xl object-cover border border-slate-200 bg-slate-50 shrink-0"
+                      className="w-12 h-12 rounded-xl object-cover border border-slate-200 bg-slate-50 shrink-0"
                     />
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
                         <h3 className="font-bold text-base text-navy-950">{app.candidate.name}</h3>
                         <span className="text-[11px] text-slate-400 font-medium">
-                          • Applied for <strong className="text-slate-700">{app.job.title}</strong>
+                          • for <strong className="text-slate-700">{app.job.title}</strong>
                         </span>
                       </div>
 
@@ -221,96 +194,56 @@ export default function EmployerApplicantsClient({
                             <span>{app.candidate.candidateProfile.phone}</span>
                           </div>
                         )}
-                        {app.candidate.candidateProfile?.location && (
-                          <div className="flex items-center gap-1">
-                            <MapPin className="w-3.5 h-3.5 text-slate-400" />
-                            <span>{app.candidate.candidateProfile.location}</span>
-                          </div>
-                        )}
                         <span>Applied {timeAgo(app.appliedAt)}</span>
                       </div>
                     </div>
                   </div>
 
-                  {/* Stage Status Selector */}
+                  {/* 3-State Status Selector */}
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-slate-500">Stage:</span>
+                    <label className="text-xs font-bold text-slate-500">Status:</label>
                     <select
-                      value={app.status}
+                      value={currentStatus}
                       disabled={updatingId === app.id}
                       onChange={(e) => handleStatusChange(app.id, e.target.value)}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition ${
-                        app.status === 'SHORTLISTED' || app.status === 'INTERVIEW'
-                          ? 'bg-amber-50 text-amber-800 border-amber-300'
-                          : app.status === 'OFFERED'
-                          ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
-                          : app.status === 'REJECTED'
-                          ? 'bg-rose-50 text-rose-800 border-rose-300'
-                          : 'bg-slate-50 text-slate-800 border-slate-300'
+                      className={`text-xs font-bold px-3 py-1.5 rounded-xl border focus:outline-none transition ${
+                        currentStatus === 'SHORTLISTED'
+                          ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
+                          : currentStatus === 'REJECTED'
+                          ? 'bg-rose-50 text-rose-700 border-rose-300'
+                          : 'bg-slate-100 text-slate-700 border-slate-300'
                       }`}
                     >
-                      {statusOptions.map((st) => (
-                        <option key={st} value={st}>
-                          {st}
-                        </option>
-                      ))}
+                      <option value="APPLIED">Applied</option>
+                      <option value="SHORTLISTED">Shortlisted</option>
+                      <option value="REJECTED">Rejected</option>
                     </select>
                   </div>
                 </div>
 
-                {/* Skills tags */}
-                {app.candidate.candidateProfile?.skills && (
-                  <div className="flex flex-wrap items-center gap-1.5 pt-1">
-                    {app.candidate.candidateProfile.skills.split(',').map((skill, sIdx) => (
-                      <span
-                        key={sIdx}
-                        className="text-[11px] font-semibold bg-slate-50 text-slate-600 px-2.5 py-0.5 rounded-md border border-slate-100"
-                      >
-                        {skill.trim()}
-                      </span>
-                    ))}
-                  </div>
-                )}
-
-                {/* Cover Letter */}
-                {app.coverLetter && (
-                  <div className="p-4 rounded-xl bg-slate-50 border border-slate-100 text-xs">
-                    <span className="font-bold text-slate-800 block mb-1">Candidate Cover Note:</span>
-                    <p className="text-slate-600 whitespace-pre-line leading-relaxed">{app.coverLetter}</p>
-                  </div>
-                )}
-
-                {/* Recruiter Notes & Actions */}
-                <div className="pt-3 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
-                  <div className="flex items-center gap-2 w-full sm:w-auto">
-                    <input
-                      type="text"
-                      value={currentNote}
-                      onChange={(e) =>
-                        setNotesState({ ...notesState, [app.id]: e.target.value })
-                      }
-                      placeholder="Add recruiter/interview notes (visible to candidate)..."
-                      className="w-full sm:w-80 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-800 focus:outline-none focus:border-brand-500"
-                    />
-                    <button
-                      onClick={() => handleSaveNotes(app.id)}
-                      className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-semibold shrink-0"
-                    >
-                      Save Note
-                    </button>
+                {/* Cover Note & Resume Link */}
+                <div className="pt-3 border-t border-slate-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                  <div className="text-xs text-slate-600">
+                    {app.coverLetter ? (
+                      <span><strong>Cover Note:</strong> {app.coverLetter}</span>
+                    ) : (
+                      <span className="text-slate-400 italic">No cover note provided.</span>
+                    )}
                   </div>
 
-                  <div className="flex items-center gap-2 shrink-0">
+                  {app.resumeUrl ? (
                     <a
                       href={app.resumeUrl}
                       target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold shadow-sm transition"
+                      rel="noopener noreferrer"
+                      className="px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-brand-600 text-white text-xs font-semibold flex items-center gap-1.5 transition shrink-0"
                     >
                       <Download className="w-3.5 h-3.5" />
-                      <span>Download Resume (CV)</span>
+                      <span>Download Resume</span>
                     </a>
-                  </div>
+                  ) : (
+                    <span className="text-xs text-slate-400">No resume attached</span>
+                  )}
                 </div>
               </div>
             );

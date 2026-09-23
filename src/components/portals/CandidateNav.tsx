@@ -11,8 +11,7 @@ export default function CandidateNav() {
   const links = [
     { name: 'Overview', href: '/portal/candidate', icon: LayoutDashboard },
     { name: 'My Applications', href: '/portal/candidate/applications', icon: FileText },
-    { name: 'Candidate Profile', href: '/portal/candidate/profile', icon: UserCheck },
-    { name: 'Saved Jobs', href: '/portal/candidate/saved', icon: Bookmark },
+    { name: 'Profile & Resume', href: '/portal/candidate/profile', icon: UserCheck },
   ];
 
   return (

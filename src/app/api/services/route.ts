@@ -89,7 +89,7 @@ export async function POST(req: NextRequest) {
       subject: `Inquiry Received: ${title}`,
       title: 'Consulting Request Received',
       message: `Thank you for reaching out to HireVibe. A Senior HR Partner will review your request for "${serviceType}" and contact you within 24 business hours.`,
-      actionUrl: '/portal/employer/consulting',
+      actionUrl: '/portal/employer',
       type: 'SERVICE',
     });
 

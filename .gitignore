@@ -40,8 +40,6 @@ prisma/*.db-journal
 *.pem
 Thumbs.db
 
-# IDE and editors
-.vscode/
-.idea/
-*.swp
-*.swo
+# TypeScript build cache
+*.tsbuildinfo
+

@@ -41,7 +41,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
         subject: `Consultant Assigned to: ${request.title}`,
         title: 'Senior Consultant Assigned',
         message: `${assignedConsultant} has been assigned as your lead HR advisory partner for "${request.title}".`,
-        actionUrl: '/portal/employer/consulting',
+        actionUrl: '/portal/employer',
         type: 'SERVICE',
       });
     }
