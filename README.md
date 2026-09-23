@@ -110,3 +110,36 @@ DATABASE_URL="postgresql://postgres:postgres@localhost:5432/hirevibe?schema=publ
 # Push schema to PostgreSQL
 npx prisma db push --schema=prisma/schema.postgresql.prisma
 ```
+
+---
+
+## 🚢 Deploying to Vercel
+
+HireVibe is fully pre-configured for one-click deployment on [Vercel](https://vercel.com):
+
+### 1. Import Repository
+1. Log in to [Vercel](https://vercel.com) and click **"Add New..."** ➔ **"Project"**.
+2. Select your GitHub repository: `https://github.com/ashprince777/hirevibe.git`.
+
+### 2. Configure Environment Variables
+In the Vercel project configuration, add the following Environment Variables:
+
+| Key | Example Value | Description |
+| :--- | :--- | :--- |
+| `DATABASE_URL` | `postgresql://...` | Connection string to your cloud PostgreSQL (Vercel Postgres, Supabase, Neon, or Railway) |
+| `JWT_SECRET` | `hirevibe-enterprise-secret-key-32-chars-minimum` | Minimum 32-character secret key for secure authentication |
+| `NEXT_PUBLIC_APP_URL` | `https://your-domain.vercel.app` | Production URL of your deployed application |
+
+> **Tip**: You can use Vercel's built-in **Storage ➔ Postgres** tab to create a free serverless database with 1 click. Vercel automatically populates `DATABASE_URL` and `POSTGRES_PRISMA_URL`!
+
+### 3. Automatic Build
+- Vercel automatically runs `postinstall` (`node scripts/prepare-prisma.js && prisma generate`) and `build` (`prisma generate && next build`).
+- `scripts/prepare-prisma.js` automatically detects your remote PostgreSQL database from `DATABASE_URL` and configures Prisma accordingly.
+
+### 4. Seed Database (Optional)
+To seed the remote database with initial Indian executive search roles, sample candidates, and consulting practice areas:
+```bash
+npx prisma db push
+npx tsx prisma/seed.ts
+```
+
