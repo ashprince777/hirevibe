@@ -24,10 +24,10 @@ yarn-error.log*
 .pnpm-debug.log*
 
 # Database / SQLite
-*.db
 *.db-journal
-prisma/*.db
 prisma/*.db-journal
+# Allow pre-seeded SQLite database for zero-config Vercel deployment
+!prisma/dev.db
 
 # Uploads directory (keep structure, ignore actual uploads if needed)
 /public/uploads/resumes/*

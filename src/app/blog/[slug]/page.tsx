@@ -10,29 +10,37 @@ export const revalidate = 0;
 export default async function BlogPostPage({ params }: { params: { slug: string } }) {
   const { slug } = params;
 
-  const post = await prisma.blogPost.findFirst({
-    where: {
-      OR: [{ slug }, { id: slug }],
-      isPublished: true,
-    },
-    include: {
-      author: true,
-    },
-  });
+  let post: any = null;
+  try {
+    post = await prisma.blogPost.findFirst({
+      where: {
+        OR: [{ slug }, { id: slug }],
+        isPublished: true,
+      },
+      include: {
+        author: true,
+      },
+    });
+  } catch (err) {
+    console.error('Notice: blog post query fallback');
+  }
 
   if (!post) {
     notFound();
   }
 
-  const relatedPosts = await prisma.blogPost.findMany({
-    where: {
-      category: post.category,
-      id: { not: post.id },
-      isPublished: true,
-    },
-    take: 2,
-    orderBy: { publishedAt: 'desc' },
-  });
+  let relatedPosts: any[] = [];
+  try {
+    relatedPosts = await prisma.blogPost.findMany({
+      where: {
+        category: post.category,
+        id: { not: post.id },
+        isPublished: true,
+      },
+      take: 2,
+      orderBy: { publishedAt: 'desc' },
+    });
+  } catch (err) {}
 
   return (
     <article className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-10">

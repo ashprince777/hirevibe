@@ -12,13 +12,13 @@ if (fs.existsSync(schemaPath)) {
   if (isPostgres) {
     console.log('[HireVibe] Remote PostgreSQL database detected. Setting Prisma provider to postgresql...');
     content = content.replace(/provider\s*=\s*"sqlite"/g, 'provider = "postgresql"');
+    content = content.replace(/url\s*=\s*"[^"]*"/g, 'url      = env("DATABASE_URL")');
   } else {
     console.log('[HireVibe] SQLite database mode active. Setting Prisma provider to sqlite...');
     content = content.replace(/provider\s*=\s*"postgresql"/g, 'provider = "sqlite"');
-  }
-
-  // Ensure url uses env("DATABASE_URL")
-  if (!content.includes('url      = env("DATABASE_URL")')) {
+    if (!process.env.DATABASE_URL) {
+      process.env.DATABASE_URL = 'file:./dev.db';
+    }
     content = content.replace(/url\s*=\s*"[^"]*"/g, 'url      = env("DATABASE_URL")');
   }
 

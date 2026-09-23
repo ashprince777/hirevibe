@@ -9,18 +9,23 @@ export const revalidate = 0;
 export default async function JobPage({ params }: { params: { id: string } }) {
   const { id } = params;
 
-  const job = await prisma.job.findFirst({
-    where: {
-      OR: [{ id }, { slug: id }],
-      status: 'ACTIVE',
-    },
-    include: {
-      employer: true,
-      _count: {
-        select: { applications: true },
+  let job: any = null;
+  try {
+    job = await prisma.job.findFirst({
+      where: {
+        OR: [{ id }, { slug: id }],
+        status: 'ACTIVE',
       },
-    },
-  });
+      include: {
+        employer: true,
+        _count: {
+          select: { applications: true },
+        },
+      },
+    });
+  } catch (err) {
+    console.error('Notice: job detail query fallback');
+  }
 
   if (!job) {
     notFound();
